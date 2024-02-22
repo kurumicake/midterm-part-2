@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu</title>
+</head>
+<body>
+    <table>
+        <% content.split('\n').forEach(function(line) { %>
+            <tr><td><%= line.replace(/\t/g, '</td><td>') %></td></tr>
+        <% }); %>
+    </table>
+</body>
+</html>
