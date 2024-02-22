@@ -12,8 +12,8 @@ export class CsvMenuParser {
 
   async parseCSV(): Promise<IMenuItem[]> {
     const data = await readFile(this.filePath, "utf-8");
-    const lines = data.split(EOL).filter((line) => line.trim());
-    return lines.map((line) => {
+    const lines = data.split(EOL).filter(line => line.trim());
+    return lines.map(line => {
       const [mealType, mealName, mealQuantity, priceString] = line.split(",");
       const price = priceString.trim().replace("$", "");
       return { mealType, mealName, mealQuantity, price };
@@ -23,33 +23,26 @@ export class CsvMenuParser {
   async writeMenu(writer: IWritable): Promise<void> {
     const menuItems = await this.parseCSV();
     const categorizedItems: Record<string, IMenuItem[]> = {};
-    menuItems.forEach((item) => {
-      const { mealType, mealName, mealQuantity, price } = item;
-      const priceFloat = parseFloat(price);
-      if (!categorizedItems[mealType]) {
-        categorizedItems[mealType] = [];
-      }
 
-      categorizedItems[mealType].push({
-        mealType,
-        mealName,
-        mealQuantity,
-        price: priceFloat.toFixed(2),
-      });
+    menuItems.forEach(item => {
+      if (!categorizedItems[item.mealType]) {
+        categorizedItems[item.mealType] = [];
+      }
+      categorizedItems[item.mealType].push(item);
     });
 
     let content = "";
-    Object.entries(categorizedItems).forEach(([mealType, items]) => {
-      content += `* ${
-        mealType.charAt(0).toUpperCase() + mealType.slice(1)
-      } Items * ${EOL}`;
-      items.forEach(({ mealName, mealQuantity, price }) => {
-        // Ensure price is correctly formatted when building content
-        content += `$${price},${mealName},${mealQuantity}${EOL}`;
+    Object.keys(categorizedItems).forEach(mealType => {
+      content += `<tr><th colspan="4">${mealType.toUpperCase()}</th></tr>`;
+      categorizedItems[mealType].forEach(({ mealName, mealQuantity, price }) => {
+        content += `<tr>
+        <td>$${parseFloat(price).toFixed(2)}</td>
+                      <td>${mealName}</td>
+                      <td>${mealQuantity}</td>
+                    </tr>`;
       });
-      content += EOL;
     });
 
-    await writer.writeContent(content.trim());
+    await writer.writeContent(content);
   }
 }
